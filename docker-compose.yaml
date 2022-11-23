@@ -1,0 +1,9 @@
+services:
+  datastore-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        config: resources/config-1
+    ports:
+      - "8080:8080"
