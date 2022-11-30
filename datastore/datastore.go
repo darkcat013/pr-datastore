@@ -34,6 +34,18 @@ func Insert(value string) (string, error) {
 	return "", errors.New("id already exists: " + id)
 }
 
+func InsertAtId(id, value string) error {
+	utils.Log.Infof("Datastore INSERT AT ID | Insert new data: %s at id %s", value, id)
+
+	if _, ok := ds[id]; !ok {
+		ds[id] = value
+		return nil
+	}
+
+	utils.Log.Infof("Datastore INSERT | Id already exists %s", id)
+	return errors.New("id already exists: " + id)
+}
+
 func Update(id string, value string) error {
 	utils.Log.Infof("Datastore UPDATE | Update data with id: %s", id)
 
