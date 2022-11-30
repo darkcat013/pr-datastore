@@ -55,6 +55,8 @@ func StartHttp() {
 			return
 		}
 
+		TcpInsert(newId, string(value))
+
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(newId))
 	}).Methods("POST")
@@ -78,6 +80,8 @@ func StartHttp() {
 			return
 		}
 
+		TcpUpdate(id, string(value))
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Successfully updated"))
 	}).Methods("PUT")
@@ -93,17 +97,23 @@ func StartHttp() {
 			return
 		}
 
+		TcpDelete(id)
+
 		w.WriteHeader(http.StatusNoContent)
 		w.Write([]byte("Successfully deleted"))
 	}).Methods("DELETE")
 
-	//log all incoming requests
+	//log and handle all incoming requests
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.Log.Infow("HTTP Requested",
+		utils.Log.Infow("HTTP | Requested",
 			"method", r.Method,
 			"path", r.RequestURI,
 		)
-		router.ServeHTTP(w, r)
+		if datastore.IsLeader {
+			router.ServeHTTP(w, r)
+		} else {
+			w.WriteHeader(http.StatusForbidden)
+		}
 	})
 
 	utils.Log.Infow("HTTP | Starting server on port " + config.HTTP_PORT)

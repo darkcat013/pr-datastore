@@ -7,5 +7,8 @@ import (
 
 func main() {
 	utils.InitializeLogger()
+	go protocols.StartUdpServer()
+	go protocols.StartUdpClient()
+	go protocols.StartTcpServer()
 	protocols.StartHttp()
 }

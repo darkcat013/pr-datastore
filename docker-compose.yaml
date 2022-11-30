@@ -7,3 +7,25 @@ services:
         config: resources/config-1
     ports:
       - "8080:8080"
+      - "8070:8070"
+  datastore-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        config: resources/config-2
+    ports:
+      - "8081:8081"
+      - "8071:8071"
+  datastore-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        config: resources/config-3
+    ports:
+      - "8082:8082"
+      - "8072:8072"
+networks:
+  default:
+    name: datastores
