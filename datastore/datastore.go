@@ -4,12 +4,11 @@ import (
 	"errors"
 
 	"github.com/darkcat013/pr-datastore/utils"
-	"github.com/google/uuid"
 )
 
-var ds = make(map[string]string)
+var ds = make(map[string][]byte)
 
-func Get(id string) (string, error) {
+func Get(id string) ([]byte, error) {
 	utils.Log.Infof("Datastore GET | Get data with id: %s", id)
 
 	if value, ok := ds[id]; ok {
@@ -17,16 +16,17 @@ func Get(id string) (string, error) {
 	}
 
 	utils.Log.Infof("Datastore GET | Id not found: %s", id)
-	return "", errors.New("id not found: " + id)
+	return nil, errors.New("id not found: " + id)
 }
 
-func Insert(value string) (string, error) {
-	utils.Log.Infof("Datastore INSERT | Insert new data: %s", value)
+func Insert(value []byte) (string, error) {
+	utils.Log.Infof("Datastore INSERT | Insert new data")
 
-	id := uuid.New().String()
+	id := utils.GetNewId(value)
 
 	if _, ok := ds[id]; !ok {
 		ds[id] = value
+		utils.Log.Infof("Datastore INSERT | Inserted new data at id: %s", id)
 		return id, nil
 	}
 
@@ -34,8 +34,8 @@ func Insert(value string) (string, error) {
 	return "", errors.New("id already exists: " + id)
 }
 
-func InsertAtId(id, value string) error {
-	utils.Log.Infof("Datastore INSERT AT ID | Insert new data: %s at id %s", value, id)
+func InsertAtId(id string, value []byte) error {
+	utils.Log.Infof("Datastore INSERT AT ID | Insert new data at id %s", id)
 
 	if _, ok := ds[id]; !ok {
 		ds[id] = value
@@ -46,7 +46,7 @@ func InsertAtId(id, value string) error {
 	return errors.New("id already exists: " + id)
 }
 
-func Update(id string, value string) error {
+func Update(id string, value []byte) error {
 	utils.Log.Infof("Datastore UPDATE | Update data with id: %s", id)
 
 	if _, ok := ds[id]; ok {

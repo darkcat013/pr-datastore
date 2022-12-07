@@ -5,13 +5,20 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/darkcat013/pr-datastore/config"
+	"github.com/darkcat013/pr-datastore/constants"
 	"github.com/darkcat013/pr-datastore/datastore"
 	"github.com/darkcat013/pr-datastore/utils"
 	"github.com/gorilla/mux"
 )
 
+var NewLeaderChan = make(chan bool)
+
 func StartHttp() {
+
+	if !datastore.IsLeader {
+		<-NewLeaderChan
+	}
+
 	router := mux.NewRouter()
 
 	router.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +33,7 @@ func StartHttp() {
 			return
 		}
 
-		w.Write([]byte(value))
+		w.Write(value)
 
 	}).Methods("GET")
 
@@ -48,14 +55,7 @@ func StartHttp() {
 			w.Write([]byte("could not read request body"))
 		}
 
-		newId, err := datastore.Insert(string(value))
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-
-		TcpInsert(newId, string(value))
+		newId := TcpInsert(value)
 
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(newId))
@@ -73,14 +73,14 @@ func StartHttp() {
 			w.Write([]byte("could not read request body"))
 		}
 
-		err = datastore.Update(id, string(value))
+		err = datastore.Update(id, value)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(err.Error()))
 			return
 		}
 
-		TcpUpdate(id, string(value))
+		TcpUpdate(id, value)
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Successfully updated"))
@@ -109,17 +109,14 @@ func StartHttp() {
 			"method", r.Method,
 			"path", r.RequestURI,
 		)
-		if datastore.IsLeader {
-			router.ServeHTTP(w, r)
-		} else {
-			w.WriteHeader(http.StatusForbidden)
-		}
+		router.ServeHTTP(w, r)
 	})
 
-	utils.Log.Infow("HTTP | Starting server on port " + config.HTTP_PORT)
-	if err := http.ListenAndServe(config.HTTP_PORT, handler); err != nil {
+	utils.Log.Infow("HTTP | Starting server on port " + constants.HTTP_PORT)
+	if err := http.ListenAndServe(constants.HTTP_PORT, handler); err != nil {
 		utils.Log.Fatalw("HTTP | Could not start server",
 			"error", err.Error(),
 		)
 	}
+	utils.Log.Infow("HTTP | Started server on port " + constants.HTTP_PORT)
 }

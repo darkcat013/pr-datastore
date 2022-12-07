@@ -15,7 +15,7 @@ func StartTcpServer() {
 
 	l, err := net.Listen("tcp", config.TCP_PORT)
 	if err != nil {
-		utils.Log.Errorw("TCP Server | Could not start TCP", "error", err.Error(), "port", config.TCP_PORT)
+		utils.Log.Errorw("TCP Server | Could not start TCP", "error", err.Error())
 		return
 	}
 
@@ -26,7 +26,7 @@ func StartTcpServer() {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			utils.Log.Errorw("TCP Server | Error accepting connection", "error", err.Error(), "port", config.TCP_PORT)
+			utils.Log.Errorw("TCP Server | Error accepting connection", "error", err.Error())
 			continue
 		}
 
@@ -42,12 +42,12 @@ func handleConnection(conn net.Conn) {
 
 		n, err := conn.Read(buffer)
 		if err != nil {
-			utils.Log.Errorw("TCP Server | Error reading from connection", "error", err.Error(), "port", config.TCP_PORT)
+			utils.Log.Errorw("TCP Server | Error reading from connection", "error", err.Error())
 			return
 		}
 
 		buffer = buffer[:n]
-		var action domain.Action
+		var action domain.TcpAction
 		err = json.Unmarshal(buffer, &action)
 		if err != nil {
 			utils.Log.Errorw("TCP Server | Error decoding config JSON", "error", err.Error(), "info", string(buffer))
@@ -60,7 +60,7 @@ func handleConnection(conn net.Conn) {
 	}
 }
 
-func handleAction(action domain.Action) {
+func handleAction(action domain.TcpAction) {
 	switch action.Action {
 	case constants.TCP_INSERT:
 		err := datastore.InsertAtId(action.Id, action.Value)
